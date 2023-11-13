@@ -1,0 +1,4 @@
+#!/bin/sh
+
+export HOME=/home/globus
+exec /opt/globusconnectpersonal/globusconnectpersonal -dir /var/lib/globus -setup

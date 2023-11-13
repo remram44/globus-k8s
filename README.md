@@ -54,6 +54,7 @@ You should mount the volumes to be shared using `volumeMounts` and list them in 
           # sharing flag: 1 allows sharing for the path, 0 disallows sharing
           # write flag: 1 allows read+write access, 0 allows read-only access
           # See also https://docs.globus.org/globus-connect-personal/install/linux/#config-paths
+          # Alternatively, mount a file over /var/lib/globus/lta/config-paths
           value: |
             /data,1,1
             /models,1,0
