@@ -34,6 +34,11 @@ Add the Globus container to your Pod, by editing your application's manifest. Yo
 You should mount the volumes to be shared using `volumeMounts` and list them in the `GLOBUS_PATHS` environment variable using [the Globus configuration format](https://docs.globus.org/globus-connect-personal/install/linux/#config-paths).
 
 ```yaml
+...
+spec:
+  securityContext:
+    fsGroup: 2000
+    fsGroupChangePolicy: OnRootMismatch
   containers:
     - ... # Your existing containers
     - name: globus-connect
@@ -51,13 +56,16 @@ You should mount the volumes to be shared using `volumeMounts` and list them in 
         - name: GLOBUS_PATHS
           # List of paths to export
           # <path>,<sharing flag>,<write flag>
-          # sharing flag: 1 allows sharing for the path, 0 disallows sharing
-          # write flag: 1 allows read+write access, 0 allows read-only access
+          # sharing flag:
+          #     1 allows sharing for the path, 0 disallows sharing
+          #     (unavailable with Connect Personal)
+          # write flag:
+          #     1 allows read+write access, 0 allows read-only access
           # See also https://docs.globus.org/globus-connect-personal/install/linux/#config-paths
           # Alternatively, mount a file over /var/lib/globus/lta/config-paths
           value: |
-            /data,1,1
-            /models,1,0
+            /data,0,1
+            /models,0,0
   volumes:
     - ...
     - name: globus-state
@@ -71,7 +79,7 @@ Step 3: Register your endpoint with Globus
 Run the following command:
 
 ```console
-$ kubectl exec -i -c globus-connect deploy/my-app -- setup
+$ kubectl exec -ti -c globus-connect deploy/my-app -- setup
 ```
 
 And follow the steps to associate this instance of Globus Connect Personal with your Globus account.
