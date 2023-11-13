@@ -29,7 +29,7 @@ $ kubectl create -f globus-volume.yml
 Step 2: Add the sidecar container to your application
 -----------------------------------------------------
 
-Add the Globus container to your Pod, by editing your application's manifest. You can also run Globus as a stand-alone Pod if you don't use a volume that is exclusively attached in another.
+Add the Globus container to your Pod, by editing your application's manifest (for example the `template` section of a `Deployment` manifest). You can also run Globus as a stand-alone Pod if you don't use a volume that is exclusively attached to another.
 
 You should mount the volumes to be shared using `volumeMounts` and list them in the `GLOBUS_PATHS` environment variable using [the Globus configuration format](https://docs.globus.org/globus-connect-personal/install/linux/#config-paths).
 
@@ -40,18 +40,24 @@ spec:
     fsGroup: 2000
     fsGroupChangePolicy: OnRootMismatch
   containers:
-    - ... # Your existing containers
+    # Keep your existing container(s)
+    - ...
+    # ...
+
+    # Add the Globus container
     - name: globus-connect
       image: ghcr.io/remram44/globus-k8s
-      #securityContext:
-      #  runAsUser: 472 # Optional, run as a specific user ID
+       1000 # Optional, run as a specific user ID
       volumeMounts:
         - name: globus-state
           mountPath: /var/lib/globus/lta
+        # Mount the volumes you want to expose in this container
+        # For example:
         - name: data
           mountPath: /data
         - name: model
           mountPath: /models
+        # (end example)
       env:
         - name: GLOBUS_PATHS
           # List of paths to export
@@ -62,12 +68,15 @@ spec:
           # write flag:
           #     1 allows read+write access, 0 allows read-only access
           # See also https://docs.globus.org/globus-connect-personal/install/linux/#config-paths
-          # Alternatively, mount a file over /var/lib/globus/lta/config-paths
+          # Alternatively, mount a file from a ConfigMap over /var/lib/globus/lta/config-paths
           value: |
             /data,0,1
             /models,0,0
   volumes:
+    # Your existing volumes
     - ...
+
+    # The PersistentVolumeClaim we created earlier:
     - name: globus-state
       persistentVolumeClaim:
         claimName: globus-state
